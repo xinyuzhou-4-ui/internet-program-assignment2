@@ -1,16 +1,8 @@
 from datetime import date, datetime
 from typing import List, Optional
-from urllib.parse import quote_plus
-from sqlmodel import Field, SQLModel, Session, create_engine, select
+from sqlmodel import Field, SQLModel, Session, select
 
-# Set the database connection
-username = "root"
-raw_password = ""
-password = quote_plus(raw_password)
-database_name = "expense_tracker"
-DATABASE_URL = f"mysql+pymysql://{username}:{password}@localhost:3306/{database_name}"
-engine = create_engine(DATABASE_URL, echo=True)
-
+from database import engine, get_session
 
 # Define the expense table
 class Expense(SQLModel, table=True):
@@ -30,14 +22,6 @@ class Expense(SQLModel, table=True):
 
 # Create the table if it does not exist
 SQLModel.metadata.create_all(engine)
-
-
-# Get one database session
-# The API file uses this session
-def get_session():
-    """Return a database session."""
-    with Session(engine) as session:
-        yield session
 
 
 # CRUD functions for expenses
