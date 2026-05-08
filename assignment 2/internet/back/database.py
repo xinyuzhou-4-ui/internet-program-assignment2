@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
-from sqlmodel import Session, create_engine
+from sqlmodel import SQLModel, Session, create_engine
 
 
 load_dotenv(Path(__file__).with_name(".env"))
@@ -22,3 +22,10 @@ def get_session():
     """Return a database session."""
     with Session(engine) as session:
         yield session
+
+
+def create_db_and_tables():
+    """Create database tables if they do not exist."""
+    import models
+
+    SQLModel.metadata.create_all(engine)
