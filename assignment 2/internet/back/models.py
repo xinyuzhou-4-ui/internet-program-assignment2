@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel
 
 
 class User(SQLModel, table=True):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(max_length=50)
@@ -27,14 +27,14 @@ class Expense(SQLModel, table=True):
     date: date
     description: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
 
 class UserActivity(SQLModel, table=True):
     __tablename__ = "user_activities"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="users.id")
     activity_type: str = Field(max_length=50)
     detail: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
