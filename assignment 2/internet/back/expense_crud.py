@@ -13,19 +13,24 @@ async def create_expense(session: Session, expense_data: Expense) -> Expense:
     return new_expense
 
 
-async def get_expense(session: Session, expense_id: int) -> Optional[Expense]:
-    return session.get(Expense, expense_id)
+async def get_user_expense(
+    session: Session, expense_id: int, user_id: int
+) -> Optional[Expense]:
+    statement = select(Expense).where(Expense.id == expense_id, Expense.user_id == user_id)
+    return session.exec(statement).first()
 
 
-async def get_expenses(session: Session, skip: int = 0, limit: int = 100) -> List[Expense]:
-    statement = select(Expense).offset(skip).limit(limit)
+async def get_user_expenses(
+    session: Session, user_id: int, skip: int = 0, limit: int = 100
+) -> List[Expense]:
+    statement = select(Expense).where(Expense.user_id == user_id).offset(skip).limit(limit)
     return session.exec(statement).all()
 
 
 async def update_expense(
-    session: Session, expense_id: int, expense_data: Expense
+    session: Session, expense_id: int, user_id: int, expense_data: Expense
 ) -> Optional[Expense]:
-    expense = await get_expense(session, expense_id)
+    expense = await get_user_expense(session, expense_id, user_id)
     if not expense:
         return None
 
@@ -39,8 +44,8 @@ async def update_expense(
     return expense
 
 
-async def delete_expense(session: Session, expense_id: int) -> bool:
-    expense = await get_expense(session, expense_id)
+async def delete_expense(session: Session, expense_id: int, user_id: int) -> bool:
+    expense = await get_user_expense(session, expense_id, user_id)
     if not expense:
         return False
 

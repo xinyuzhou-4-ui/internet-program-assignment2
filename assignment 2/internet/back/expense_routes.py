@@ -9,8 +9,8 @@ from database import engine, get_session
 from expense_crud import (
     create_expense as db_create_expense,
     delete_expense as db_delete_expense,
-    get_expense as db_get_expense,
-    get_expenses as db_get_expenses,
+    get_user_expense as db_get_user_expense,
+    get_user_expenses as db_get_user_expenses,
     update_expense as db_update_expense,
 )
 from models import Expense, ExpenseCreate, ExpenseUpdate, User
@@ -26,11 +26,12 @@ def get_monthly_trend(current_user: User = Depends(get_current_user)):
             """
             SELECT DATE_FORMAT(date, '%Y-%m') AS month, SUM(amount) AS total
             FROM expenses
+            WHERE user_id = :user_id
             GROUP BY DATE_FORMAT(date, '%Y-%m')
             ORDER BY month
             """
         )
-        results = session.exec(query).all()
+        results = session.exec(query, params={"user_id": current_user.id}).all()
         return [{"month": row[0], "total": float(row[1])} for row in results]
 
 
@@ -39,7 +40,7 @@ async def get_expenses(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    return await db_get_expenses(session)
+    return await db_get_user_expenses(session, current_user.id)
 
 
 @router.post("/expenses", response_model=Expense)
@@ -54,6 +55,7 @@ async def create_expense(
         amount=expense_data.amount,
         date=date.fromisoformat(expense_data.expense_date),
         description=expense_data.description,
+        user_id=current_user.id,
     )
     return await db_create_expense(session, expense)
 
@@ -65,7 +67,7 @@ async def update_expense(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    existing_expense = await db_get_expense(session, expense_id)
+    existing_expense = await db_get_user_expense(session, expense_id, current_user.id)
     if not existing_expense:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
 
@@ -81,8 +83,9 @@ async def update_expense(
         if expense_data.description is not None
         else existing_expense.description,
         created_at=existing_expense.created_at,
+        user_id=existing_expense.user_id,
     )
-    return await db_update_expense(session, expense_id, expense_update)
+    return await db_update_expense(session, expense_id, current_user.id, expense_update)
 
 
 @router.delete("/expenses/{expense_id}")
@@ -91,7 +94,7 @@ async def delete_expense(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    deleted = await db_delete_expense(session, expense_id)
+    deleted = await db_delete_expense(session, expense_id, current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
 
