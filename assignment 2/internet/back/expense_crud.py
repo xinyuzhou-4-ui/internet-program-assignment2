@@ -1,7 +1,5 @@
 from typing import List, Optional
-
 from sqlmodel import Session, select
-
 from models import Expense
 
 

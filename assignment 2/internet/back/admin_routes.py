@@ -12,6 +12,7 @@ router = APIRouter()
 
 
 class AdminUserRead(SQLModel):
+    # Admin response model for user data. It hides hashed_password.
     id: int
     username: str
     email: str
@@ -20,11 +21,13 @@ class AdminUserRead(SQLModel):
 
 
 class AdminUserUpdate(SQLModel):
+    # Request body for updating a user's role or active status.
     role: str | None = None
     is_active: bool | None = None
 
 
 def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    # Allow only admin users to use admin APIs.
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin only.")
     return current_user
@@ -35,6 +38,7 @@ def get_activities(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_admin_user),
 ):
+    # Admin can view all user activity logs.
     statement = select(UserActivity).order_by(UserActivity.created_at.desc())
     return session.exec(statement).all()
 
@@ -44,6 +48,7 @@ def get_all_users(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
+    # Admin can view all users without password hashes.
     statement = select(User).order_by(User.id)
     return session.exec(statement).all()
 
@@ -55,6 +60,7 @@ def update_user(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
+    # Admin can update a user's role or active status.
     target_user = session.get(User, user_id)
     if target_user is None:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -87,6 +93,7 @@ def deactivate_user(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
+    # Soft delete: keep the user row but mark it inactive.
     target_user = session.get(User, user_id)
     if target_user is None:
         raise HTTPException(status_code=404, detail="User not found.")

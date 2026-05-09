@@ -6,6 +6,7 @@ from sqlmodel import Field, SQLModel
 
 
 class User(SQLModel, table=True):
+    # Database table for registered users.
     __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -18,6 +19,7 @@ class User(SQLModel, table=True):
 
 
 class Expense(SQLModel, table=True):
+    # Database table for expense records.
     __tablename__ = "expenses"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -31,6 +33,7 @@ class Expense(SQLModel, table=True):
 
 
 class UserActivity(SQLModel, table=True):
+    # Database table for simple user action logs.
     __tablename__ = "user_activities"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -41,6 +44,7 @@ class UserActivity(SQLModel, table=True):
 
 
 class ExpenseCreate(SQLModel):
+    # Request body used when creating a new expense.
     title: str
     category: str
     amount: float
@@ -55,6 +59,7 @@ class ExpenseCreate(SQLModel):
 
 
 class ExpenseUpdate(SQLModel):
+    # Request body used when updating an expense. All fields are optional.
     title: Optional[str] = None
     category: Optional[str] = None
     amount: Optional[float] = None

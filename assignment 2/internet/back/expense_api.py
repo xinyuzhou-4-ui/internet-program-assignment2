@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,7 +8,14 @@ from auth_user import router as auth_router
 from database import create_db_and_tables
 from expense_routes import router as expense_router
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,11 +28,6 @@ app.add_middleware(
 app.include_router(expense_router)
 app.include_router(auth_router)
 app.include_router(admin_router)
-
-
-@app.on_event("startup")
-def start_app():
-    create_db_and_tables()
 
 
 # Test if the API is running

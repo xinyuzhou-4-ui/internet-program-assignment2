@@ -18,12 +18,14 @@ ALGORITHM = "HS256"
 
 
 class UserRegister(SQLModel):
+    # Request body for user registration.
     username: str
     email: str
     password: str
 
 
 class UserRead(SQLModel):
+    # User response model. It does not include hashed_password.
     id: int
     username: str
     email: str
@@ -32,16 +34,19 @@ class UserRead(SQLModel):
 
 
 class UserLogin(SQLModel):
+    # Request body for user login.
     email: str
     password: str
 
 
 class TokenRead(SQLModel):
+    # Response model returned after successful login.
     access_token: str
     token_type: str = "bearer"
 
 
 def hash_password(plain_password: str) -> str:
+    # Hash password before saving it to the database.
     password_bytes = plain_password.encode("utf-8")
     if len(password_bytes) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
@@ -53,6 +58,7 @@ def hash_password(plain_password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # Compare a login password with the saved password hash.
     password_bytes = plain_password.encode("utf-8")
     if len(password_bytes) > 72:
         return False
@@ -60,6 +66,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(db_user: User) -> str:
+    # Create a JWT token for the logged in user.
     payload = {
         "user_id": db_user.id,
         "email": db_user.email,
@@ -70,15 +77,18 @@ def create_access_token(db_user: User) -> str:
 
 
 def get_user_by_email(session: Session, email: str) -> User | None:
+    # Find one user by email.
     statement = select(User).where(User.email == email)
     return session.exec(statement).first()
 
 
 def get_user_by_id(session: Session, user_id: int) -> User | None:
+    # Find one user by id.
     return session.get(User, user_id)
 
 
 def create_user(session: Session, user_data: UserRegister) -> User:
+    # Create a new user with a hashed password.
     hashed_password = hash_password(user_data.password)
     db_user = User(
         username=user_data.username,
@@ -94,6 +104,7 @@ def create_user(session: Session, user_data: UserRegister) -> User:
 def create_activity_log(
     session: Session, user_id: int, action: str, detail: str | None = None
 ) -> UserActivity:
+    # Save one activity record for a user action.
     activity = UserActivity(user_id=user_id, action=action, detail=detail)
     session.add(activity)
     session.commit()
@@ -105,6 +116,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     session: Session = Depends(get_session),
 ) -> User:
+    # Read and verify the Bearer token, then return the current user.
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
@@ -146,6 +158,7 @@ def get_current_user(
 
 @router.post("/register", response_model=UserRead)
 def register(user_data: UserRegister, session: Session = Depends(get_session)):
+    # Register a new user if the email is not already used.
     db_user = get_user_by_email(session, user_data.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already exists.")
@@ -155,6 +168,7 @@ def register(user_data: UserRegister, session: Session = Depends(get_session)):
 
 @router.post("/login", response_model=TokenRead)
 def login(user_data: UserLogin, session: Session = Depends(get_session)):
+    # Check email and password, then return an access token.
     db_user = get_user_by_email(session, user_data.email)
     if db_user is None or not verify_password(user_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password.")

@@ -1,26 +1,72 @@
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, text
+from sqlmodel import Session, select, text
 
 from auth_user import create_activity_log, get_current_user
 from database import engine, get_session
-from expense_crud import (
-    create_expense as db_create_expense,
-    delete_expense as db_delete_expense,
-    get_user_expense as db_get_user_expense,
-    get_user_expenses as db_get_user_expenses,
-    update_expense as db_update_expense,
-)
 from models import Expense, ExpenseCreate, ExpenseUpdate, User
 
 
 router = APIRouter()
 
 
+def save_expense(session: Session, expense_data: Expense) -> Expense:
+    # Save a new expense to the database.
+    db_expense = Expense.model_validate(expense_data)
+    session.add(db_expense)
+    session.commit()
+    session.refresh(db_expense)
+    return db_expense
+
+
+def get_user_expense(session: Session, expense_id: int, user_id: int) -> Optional[Expense]:
+    # Get one expense only if it belongs to this user.
+    statement = select(Expense).where(Expense.id == expense_id, Expense.user_id == user_id)
+    return session.exec(statement).first()
+
+
+def get_user_expenses(
+    session: Session, user_id: int, skip: int = 0, limit: int = 100
+) -> List[Expense]:
+    # Get expense records for one user.
+    statement = select(Expense).where(Expense.user_id == user_id).offset(skip).limit(limit)
+    return session.exec(statement).all()
+
+
+def update_user_expense(
+    session: Session, expense_id: int, user_id: int, expense_data: Expense
+) -> Optional[Expense]:
+    # Update an expense only if it belongs to this user.
+    db_expense = get_user_expense(session, expense_id, user_id)
+    if not db_expense:
+        return None
+
+    update_data = expense_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_expense, key, value)
+
+    session.add(db_expense)
+    session.commit()
+    session.refresh(db_expense)
+    return db_expense
+
+
+def delete_user_expense(session: Session, expense_id: int, user_id: int) -> bool:
+    # Delete an expense only if it belongs to this user.
+    db_expense = get_user_expense(session, expense_id, user_id)
+    if not db_expense:
+        return False
+
+    session.delete(db_expense)
+    session.commit()
+    return True
+
+
 @router.get("/expenses/trend")
 def get_monthly_trend(current_user: User = Depends(get_current_user)):
+    # Return monthly totals for the current user's expenses.
     with Session(engine) as session:
         query = text(
             """
@@ -40,7 +86,8 @@ async def get_expenses(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    return await db_get_user_expenses(session, current_user.id)
+    # Return only the current user's expense records.
+    return get_user_expenses(session, current_user.id)
 
 
 @router.post("/expenses", response_model=Expense)
@@ -49,6 +96,7 @@ async def create_expense(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    # Create an expense for the current user.
     expense = Expense(
         title=expense_data.title,
         category=expense_data.category,
@@ -57,7 +105,7 @@ async def create_expense(
         description=expense_data.description,
         user_id=current_user.id,
     )
-    db_expense = await db_create_expense(session, expense)
+    db_expense = save_expense(session, expense)
     create_activity_log(
         session,
         current_user.id,
@@ -75,7 +123,8 @@ async def update_expense(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    existing_expense = await db_get_user_expense(session, expense_id, current_user.id)
+    # Update the current user's expense record.
+    existing_expense = get_user_expense(session, expense_id, current_user.id)
     if not existing_expense:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
 
@@ -93,7 +142,7 @@ async def update_expense(
         created_at=existing_expense.created_at,
         user_id=existing_expense.user_id,
     )
-    db_expense = await db_update_expense(session, expense_id, current_user.id, expense_update)
+    db_expense = update_user_expense(session, expense_id, current_user.id, expense_update)
     create_activity_log(
         session,
         current_user.id,
@@ -110,7 +159,8 @@ async def delete_expense(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    deleted = await db_delete_expense(session, expense_id, current_user.id)
+    # Delete the current user's expense record.
+    deleted = delete_user_expense(session, expense_id, current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
 
