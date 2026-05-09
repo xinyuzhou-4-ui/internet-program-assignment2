@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, text
 
+from auth_user import get_current_user
 from database import engine, get_session
 from expense_crud import (
     create_expense as db_create_expense,
@@ -12,14 +13,14 @@ from expense_crud import (
     get_expenses as db_get_expenses,
     update_expense as db_update_expense,
 )
-from models import Expense, ExpenseCreate, ExpenseUpdate
+from models import Expense, ExpenseCreate, ExpenseUpdate, User
 
 
 router = APIRouter()
 
 
 @router.get("/expenses/trend")
-def get_monthly_trend():
+def get_monthly_trend(current_user: User = Depends(get_current_user)):
     with Session(engine) as session:
         query = text(
             """
@@ -34,13 +35,18 @@ def get_monthly_trend():
 
 
 @router.get("/expenses", response_model=List[Expense])
-async def get_expenses(session: Session = Depends(get_session)):
+async def get_expenses(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     return await db_get_expenses(session)
 
 
 @router.post("/expenses", response_model=Expense)
 async def create_expense(
-    expense_data: ExpenseCreate, session: Session = Depends(get_session)
+    expense_data: ExpenseCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     expense = Expense(
         title=expense_data.title,
@@ -57,6 +63,7 @@ async def update_expense(
     expense_id: int,
     expense_data: ExpenseUpdate,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     existing_expense = await db_get_expense(session, expense_id)
     if not existing_expense:
@@ -79,7 +86,11 @@ async def update_expense(
 
 
 @router.delete("/expenses/{expense_id}")
-async def delete_expense(expense_id: int, session: Session = Depends(get_session)):
+async def delete_expense(
+    expense_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     deleted = await db_delete_expense(session, expense_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
