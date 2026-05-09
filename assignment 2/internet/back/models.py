@@ -35,8 +35,8 @@ class UserActivity(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id")
-    activity_type: str = Field(max_length=50)
-    detail: Optional[str] = None
+    action: str = Field(max_length=50)
+    detail: Optional[str] = Field(default=None, max_length=255)
     created_at: datetime = Field(default_factory=datetime.now)
 
 

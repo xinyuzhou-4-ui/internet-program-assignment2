@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, text
 
-from auth_user import get_current_user
+from auth_user import create_activity_log, get_current_user
 from database import engine, get_session
 from expense_crud import (
     create_expense as db_create_expense,
@@ -57,7 +57,15 @@ async def create_expense(
         description=expense_data.description,
         user_id=current_user.id,
     )
-    return await db_create_expense(session, expense)
+    db_expense = await db_create_expense(session, expense)
+    create_activity_log(
+        session,
+        current_user.id,
+        "create_expense",
+        f"Created expense id {db_expense.id}",
+    )
+    session.refresh(db_expense)
+    return db_expense
 
 
 @router.put("/expenses/{expense_id}", response_model=Expense)
@@ -85,7 +93,15 @@ async def update_expense(
         created_at=existing_expense.created_at,
         user_id=existing_expense.user_id,
     )
-    return await db_update_expense(session, expense_id, current_user.id, expense_update)
+    db_expense = await db_update_expense(session, expense_id, current_user.id, expense_update)
+    create_activity_log(
+        session,
+        current_user.id,
+        "update_expense",
+        f"Updated expense id {expense_id}",
+    )
+    session.refresh(db_expense)
+    return db_expense
 
 
 @router.delete("/expenses/{expense_id}")
@@ -98,4 +114,10 @@ async def delete_expense(
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Expense with id {expense_id} not found.")
 
+    create_activity_log(
+        session,
+        current_user.id,
+        "delete_expense",
+        f"Deleted expense id {expense_id}",
+    )
     return {"message": f"Expense with id {expense_id} deleted successfully."}

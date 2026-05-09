@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
@@ -7,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, SQLModel, select
 
 from database import get_session
-from models import User
+from models import User, UserActivity
 
 
 router = APIRouter()
@@ -30,6 +31,16 @@ class UserRead(SQLModel):
     is_active: bool
 
 
+class UserLogin(SQLModel):
+    email: str
+    password: str
+
+
+class TokenRead(SQLModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 def hash_password(plain_password: str) -> str:
     password_bytes = plain_password.encode("utf-8")
     if len(password_bytes) < 6:
@@ -39,6 +50,23 @@ def hash_password(plain_password: str) -> str:
 
     hashed_password = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
     return hashed_password.decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    password_bytes = plain_password.encode("utf-8")
+    if len(password_bytes) > 72:
+        return False
+    return bcrypt.checkpw(password_bytes, hashed_password.encode("utf-8"))
+
+
+def create_access_token(db_user: User) -> str:
+    payload = {
+        "user_id": db_user.id,
+        "email": db_user.email,
+        "role": db_user.role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=2),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def get_user_by_email(session: Session, email: str) -> User | None:
@@ -61,6 +89,16 @@ def create_user(session: Session, user_data: UserRegister) -> User:
     session.commit()
     session.refresh(db_user)
     return db_user
+
+
+def create_activity_log(
+    session: Session, user_id: int, action: str, detail: str | None = None
+) -> UserActivity:
+    activity = UserActivity(user_id=user_id, action=action, detail=detail)
+    session.add(activity)
+    session.commit()
+    session.refresh(activity)
+    return activity
 
 
 def get_current_user(
@@ -113,3 +151,16 @@ def register(user_data: UserRegister, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400, detail="Email already exists.")
 
     return create_user(session, user_data)
+
+
+@router.post("/login", response_model=TokenRead)
+def login(user_data: UserLogin, session: Session = Depends(get_session)):
+    db_user = get_user_by_email(session, user_data.email)
+    if db_user is None or not verify_password(user_data.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    if not db_user.is_active:
+        raise HTTPException(status_code=403, detail="User is inactive.")
+
+    create_activity_log(session, db_user.id, "login", "User logged in")
+    access_token = create_access_token(db_user)
+    return TokenRead(access_token=access_token)
