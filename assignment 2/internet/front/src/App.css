@@ -17,6 +17,140 @@ body {
   padding: 32px 40px;
 }
 
+.auth-app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.auth-card h1 {
+  margin-bottom: 22px;
+  text-align: center;
+  font-size: 36px;
+  color: #111827;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.auth-tabs button {
+  margin-top: 0;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.auth-tabs button.active {
+  background: #2563eb;
+  color: white;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form label {
+  margin: 14px 0 8px;
+  font-weight: bold;
+}
+
+.auth-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.auth-form button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.auth-message,
+.auth-error {
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.auth-message {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.auth-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.top-section .dashboard-header h1 {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.user-box button {
+  margin-top: 0;
+  background: #ef4444;
+}
+
+.user-box button:hover {
+  background: #dc2626;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.view-tabs button {
+  margin-top: 0;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.view-tabs button.active {
+  background: #2563eb;
+  color: white;
+}
+
+.hidden-view {
+  display: none;
+}
+
 .top-section h1 {
   margin-bottom: 28px;
   text-align: center;
@@ -55,17 +189,87 @@ body {
 
 .expense-list-section,
 .form-section,
-.bottom-section {
+.bottom-section,
+.admin-section {
   background: white;
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
+.admin-section {
+  text-align: left;
+}
+
+.admin-section h2 {
+  margin-bottom: 16px;
+}
+
+.admin-error {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table th {
+  background: #f8fafc;
+  font-size: 14px;
+}
+
+.admin-table select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+.admin-table button {
+  margin-top: 0;
+  background: #ef4444;
+}
+
+.admin-table button:hover {
+  background: #dc2626;
+}
+
+.admin-table button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
 .expense-list-section {
   min-width: 0;
   height: 760px;
   overflow-y: auto;
+}
+
+.search-input {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
 .expense-list-section::-webkit-scrollbar {
@@ -297,6 +501,15 @@ button:hover,
     font-size: 36px;
     letter-spacing: -0.8px;
     margin-bottom: 20px;
+  }
+
+  .auth-card {
+    padding: 22px;
+  }
+
+  .dashboard-header,
+  .user-box {
+    flex-direction: column;
   }
 
   .expense-list-section {
