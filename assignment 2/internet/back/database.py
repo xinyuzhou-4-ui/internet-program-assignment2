@@ -4,7 +4,7 @@ from sqlmodel import Session, create_engine
 
 # Set the database connection
 username = "root"
-raw_password = "1234"
+raw_password = ""  # Replace with your MySQL password
 password = quote_plus(raw_password)
 database_name = "expense_tracker"
 DATABASE_URL = f"mysql+pymysql://{username}:{password}@localhost:3306/{database_name}"
