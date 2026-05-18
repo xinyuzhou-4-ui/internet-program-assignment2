@@ -1,21 +1,13 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import SQLModel
 
-from admin_routes import router as admin_router
+import models  # Register SQLModel tables before create_all.
 from auth_user import router as auth_router
-from database import create_db_and_tables
+from database import engine
 from expense_routes import router as expense_router
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,9 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(expense_router)
+SQLModel.metadata.create_all(engine)
+
 app.include_router(auth_router)
-app.include_router(admin_router)
+app.include_router(expense_router)
 
 
 # Test if the API is running
