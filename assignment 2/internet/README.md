@@ -39,7 +39,26 @@ Admin users can manage user accounts and view user activity records.
 - `back/requirements.txt` : backend Python dependencies
 - `README.md` : project description
 
-6. Challenges Overcome
+6. Workload Allocation
+- Xinyu Zhou 25942689: mainly responsible for backend development.
+  - `back/database.py`
+  - `back/models.py`
+  - `back/auth_user.py`
+  - `back/expense_routes.py`
+  - `back/expense_app_crud.py`
+  - `back/expense_api.py`
+  - `back/.env.example`
+  - `back/requirements.txt`
+- Wenhan Li 25583891: mainly responsible for frontend development.
+  - `front/src/App.jsx`
+  - `front/src/App.css`
+  - `front/src/index.css`
+  - `front/src/main.jsx`
+  - `front/index.html`
+  - `front/package.json`
+  - `front/vite.config.js`
+
+7. Challenges Overcome
 During testing, the update function returned 422, so the record could not be updated.
 After checking the developer tools, I found that the main problem was the date field.
 The original code used ‘date: Optional[date] = None’, and this may have caused a conflict because the field name and the type name were the same.
