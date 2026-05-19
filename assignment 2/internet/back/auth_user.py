@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from typing import List, Optional
 
@@ -15,7 +16,7 @@ from models import User, UserActivity
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-SECRET_KEY = "expense_tracker_secret_key"
+SECRET_KEY = os.getenv("SECRET_KEY", "expense_tracker_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -206,6 +207,15 @@ async def login(
             "role": user.role,
         },
     }
+
+
+@router.post("/logout")
+async def logout(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    await create_activity_log(session, current_user.id, "logout", "User logged out.")
+    return {"message": "Logout recorded."}
 
 
 @router.get("/admin/activities", response_model=List[UserActivity])

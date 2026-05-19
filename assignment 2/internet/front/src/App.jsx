@@ -55,6 +55,21 @@ const apiUrl = "http://127.0.0.1:8000";
 const tokenStorageKey = "expense_access_token";
 const userStorageKey = "expense_user";
 
+function BrandTitle() {
+  return (
+    <span className="brand-title">
+      <span className="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="img">
+          <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H17a2 2 0 0 1 2 2v1h.5A2.5 2.5 0 0 1 22 10.5v6A2.5 2.5 0 0 1 19.5 19h-13A4.5 4.5 0 0 1 2 14.5V9.5A2.5 2.5 0 0 1 4 7.5Z" />
+          <path d="M17 13.5h3" />
+          <path d="M6.5 5A2.5 2.5 0 0 0 4 7.5V8h13V7a2 2 0 0 0-2-2H6.5Z" />
+        </svg>
+      </span>
+      Expense Tracker
+    </span>
+  );
+}
+
 function App() {
   const [token, setToken] = useState(
     () => localStorage.getItem(tokenStorageKey) || "",
@@ -155,6 +170,21 @@ function App() {
     },
     [logout],
   );
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${apiUrl}/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      logout();
+    }
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -635,7 +665,9 @@ function App() {
     return (
       <div className="app auth-app">
         <section className="auth-card">
-          <h1>Expense Tracker</h1>
+          <h1>
+            <BrandTitle />
+          </h1>
 
           <div className="auth-tabs">
             <button
@@ -733,12 +765,14 @@ function App() {
       {/* Top area: total and category summary */}
       <header className="top-section">
         <div className="dashboard-header">
-          <h1>Expense Tracker</h1>
+          <h1>
+            <BrandTitle />
+          </h1>
           <div className="user-box">
             <span>
               {user.username} ({user.email}) - {user.role}
             </span>
-            <button type="button" onClick={() => logout()}>
+            <button type="button" onClick={handleLogout}>
               Logout
             </button>
           </div>
