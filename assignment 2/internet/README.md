@@ -3,7 +3,9 @@ Expense Tracker
 
 2. Project Summary
 This website helps users record and manage their daily expenses in one place.  
-Users can add, edit, delete, and view records, they can also check spending by category and monthly trends.
+Users can register, login, add, edit, delete, and view their own records.  
+Users can also search expense records in real time, check spending by category, and view monthly trends.
+Admin users can manage user accounts and view user activity records.
 
 3. Technical Stack
 - Frontend: React
@@ -11,20 +13,30 @@ Users can add, edit, delete, and view records, they can also check spending by c
 - Backend: FastAPI
 - Database: MySQL
 - Build Tool: Vite
+- Authentication: Password hashing and JWT
 
 4. Features
 - Responsive single-page layout
-- Add  expense record
+- User registration and login
+- Password hashing
+- JWT authentication
+- Add expense record
 - View all expense records
 - Edit existing expense
 - Delete expense record
+- Live search for expense records
 - View total expenses by category
 - View monthly spending trends
+- Only show each user their own expense records
+- Admin can manage user accounts
+- Admin can view user activity records
+- Login, logout, create expense, update expense, and delete expense activities are recorded
 
 5. Folder Structure
 - `front/` : frontend React application
 - `back/` : backend API and database connection
-- `expense_tracker.sql` : exported MySQL database file
+- `back/.env.example` : example environment variables
+- `back/requirements.txt` : backend Python dependencies
 - `README.md` : project description
 
 6. Challenges Overcome
