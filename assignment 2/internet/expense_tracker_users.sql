@@ -16,32 +16,33 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `expenses`
+-- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `expenses`;
+DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `expenses` (
+CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(100) NOT NULL,
-  `category` varchar(50) NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `date` date NOT NULL,
-  `description` text,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `hashed_password` varchar(255) NOT NULL,
+  `role` varchar(20) NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_users_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `expenses`
+-- Dumping data for table `users`
 --
 
-LOCK TABLES `expenses` WRITE;
-/*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
-INSERT INTO `expenses` VALUES (15,'Train','Transport',3.50,'2026-04-07','just test','2026-04-07 11:04:06'),(17,'Software','Study',2000.00,'2026-04-22','test','2026-04-07 11:05:27'),(18,'Electronics','Shopping',55.98,'2026-05-14','test','2026-04-07 11:07:33');
-/*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'testuser3','test3@example.com','$2b$12$kYzyKbiu9e0MAd30rBAdnu9RbpkDy7HeO/JpwqKyQ4DEf5kzZEcBW','user',1,'2026-05-07 20:14:48'),(2,'logincheck','logincheck@example.com','$2b$12$iD8I4YLSKAnTma8aM42FDuqy1y.hP0lidd1yvRThGhJUt5PMqDByu','admin',1,'2026-05-08 16:45:00'),(3,'test1','zhouxinyu@gg.com','$2b$12$Dx.SdDnAsuxKipxPnyr8TOBRr2W8C0ESc842FhIil79N1PmSQ6xdW','user',1,'2026-05-09 00:06:08');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-07 21:38:47
+-- Dump completed on 2026-05-20  3:13:12
