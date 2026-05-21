@@ -1017,9 +1017,9 @@ function App() {
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {adminUsers.map((adminUser) => {
-                    const isCurrentUser = adminUser.id === user.id;
+	                <tbody>
+		                  {adminUsers.map((adminUser) => {
+		                    const isCurrentUser = adminUser.id === user.id;
 
                     return (
                       <tr key={adminUser.id}>
@@ -1027,11 +1027,11 @@ function App() {
                         <td>{adminUser.username}</td>
                         <td>{adminUser.email}</td>
                         <td>
-                          <select
-                            value={adminUser.role}
-                            onChange={(e) =>
-                              updateAdminUser(adminUser.id, {
-                                role: e.target.value,
+	                          <select
+	                            value={adminUser.role}
+	                            onChange={(e) =>
+	                              updateAdminUser(adminUser.id, {
+	                                role: e.target.value,
                               })
                             }
                           >
